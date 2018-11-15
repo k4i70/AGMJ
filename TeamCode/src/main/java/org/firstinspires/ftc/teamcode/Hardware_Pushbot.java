@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -55,6 +56,7 @@ public class Hardware_Pushbot
     /* Public OpMode members. */
     public DcMotor  leftDrive   = null;
     public DcMotor  rightDrive  = null;
+    public DcMotor  slide       = null;
     //public DcMotor  leftArm     = null;
     //public Servo    leftClaw    = null;
     //public Servo    rightClaw   = null;
@@ -82,19 +84,23 @@ public class Hardware_Pushbot
         rightDrive = hwMap.get(DcMotor.class, "rightDrive");
         leftDrive  = hwMap.get(DcMotor.class, "leftDrive_2");
         rightDrive = hwMap.get(DcMotor.class, "rightDrive_2");
+        slide      = hwMap.get(DcMotor.class, "slide");
         //leftArm    = hwMap.get(DcMotor.class, "left_arm");
         leftDrive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
         rightDrive.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
+        slide.setDirection(DcMotor.Direction.FORWARD);
 
         // Set all motors to zero power
         leftDrive.setPower(0);
         rightDrive.setPower(0);
+        slide.setPower(0);
         //leftArm.setPower(0);
 
         // Set all motors to run without encoders.
         // May want to use RUN_USING_ENCODERS if encoders are installed.
         leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         //leftArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Define and initialize ALL installed servos.

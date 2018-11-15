@@ -62,9 +62,13 @@ public class BasicOpMode_Iterative_ extends OpMode
     private DcMotor rightDrive = null;
     private Servo finger2 = null;
     private DcMotor rightDrive_2 = null;
+    private DcMotor leftDrive_2 = null;
     private DcMotor elbowJoint = null;
     private DcMotor wristJoint = null;
+    private DcMotor slide = null;
     private Servo finger = null;
+    public double servoPower;
+    public double slideLoc;
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -81,8 +85,11 @@ public class BasicOpMode_Iterative_ extends OpMode
         rightDrive = hardwareMap.get(DcMotor.class, "rightDrive_2");
         elbowJoint = hardwareMap.get (DcMotor.class, "elbowJoint");
         wristJoint = hardwareMap.get (DcMotor.class, "wristJoint");
+        slide = hardwareMap.get (DcMotor.class, "slide");
         finger = hardwareMap.get(Servo.class, "finger");
-        finger = hardwareMap.get(Servo.class, "finger2");
+        finger2 = hardwareMap.get(Servo.class, "finger2");
+
+        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -96,6 +103,7 @@ public class BasicOpMode_Iterative_ extends OpMode
 */
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
+        servoPower=0;
     }
 
     /*
@@ -103,6 +111,8 @@ public class BasicOpMode_Iterative_ extends OpMode
      */
     @Override
     public void init_loop() {
+        slideLoc = 1;
+        servoPower = 0;
     }
 
     /*
@@ -123,6 +133,8 @@ public class BasicOpMode_Iterative_ extends OpMode
         double rightPower;
         double elbowPower;
         double wristPower;
+        double slidePower;
+        int slideEncoder = slide.getCurrentPosition();
         //boolean fingerPower;
 
         // Choose to drive using either Tank Mode, or POV Mode
@@ -138,19 +150,37 @@ public class BasicOpMode_Iterative_ extends OpMode
         elbowPower   = Range.clip(gamepad2.right_stick_y, -1, 1);
         wristPower   = Range.clip(gamepad2.left_stick_y, -1, 1);
 
-        if(gamepad2.y) {
-            // move to 0 degrees.
-            finger.setPosition(0);
-            finger2.setPosition(0);
-        } else if (gamepad2.x || gamepad2.b) {
-            // move to 90 degrees.
-            finger.setPosition(0.5);
-            finger2.setPosition(0.5);
-        } else if (gamepad2.a) {
-            // move to 180 degrees.
-            finger.setPosition(1);
-            finger2.setPosition(1);
+        if (slideEncoder < 1441 && slideEncoder > 1439) {
+            slideLoc = slideLoc + 1;
         }
+        if (slideEncoder < 2 && slideEncoder > 0) {
+            slideLoc = slideLoc - 1;
+        }
+
+        if(gamepad2.dpad_down) {
+            // move to 0 degrees.
+            servoPower = 0.01;
+        } else if (gamepad2.dpad_right || gamepad2.dpad_left) {
+            // move to 90 degrees.
+            servoPower = .5;
+        } else if (gamepad2.dpad_up) {
+            // move to 180 degrees.
+            servoPower = 0.99;
+        }
+        else {
+            servoPower = servoPower+0;
+        }
+
+
+        if(gamepad1.right_bumper) {
+            slidePower = 1;
+        } else if (gamepad1.left_bumper) {
+            slidePower = -1;
+        }
+        else {
+            slidePower = 0 ;
+        }
+
 
 
         // Tank Mode uses one stick to control each wheel.
@@ -158,12 +188,22 @@ public class BasicOpMode_Iterative_ extends OpMode
         // leftPower  = -gamepad1.left_stick_y ;
         // rightPower = -gamepad1.right_stick_y ;
 
+        if (slideLoc > 23) {
+            slidePower = 1;
+        }
+        if (slideLoc < 1) {
+            slidePower = -1;
+        }
+
         // Send calculated power to wheels
         leftDrive.setPower(leftPower);
         rightDrive.setPower(rightPower);
-        elbowJoint.setPower(elbowPower);
-        wristJoint.setPower(wristPower/2);
+        elbowJoint.setPower(elbowPower/1.5);
+        wristJoint.setPower(wristPower/4);
         //finger.setPosition(fingerPower);
+        slide.setPower(slidePower);
+        finger.setPosition(servoPower);
+        finger2.setPosition(servoPower);
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
